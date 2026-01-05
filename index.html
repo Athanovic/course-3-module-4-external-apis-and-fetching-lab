@@ -9,15 +9,15 @@
     <div class="container">
         <h1>US Weather Alerts</h1>
 
-        <!-- Input for state abbreviation - MUST match autograder expectations -->
+        <!-- Input for state abbreviation -->
         <input id="state-input" type="text" maxlength="2" placeholder="Enter state abbreviation">
         <button id="get-alerts">Get Weather Alerts</button>
 
         <!-- Error message -->
-        <div id="error-message"></div>
+        <div id="error-message" class="hidden"></div>
 
         <!-- Alerts display -->
-        <div id="alerts"></div>
+        <div id="alerts-display"></div>
     </div>
 
     <script>
@@ -29,7 +29,7 @@
         // Get references to DOM elements
         const stateInput = document.getElementById("state-input");
         const getAlertsBtn = document.getElementById("get-alerts");
-        const alertsDiv = document.getElementById("alerts");
+        const alertsDiv = document.getElementById("alerts-display");
         const errorDiv = document.getElementById("error-message");
 
         // Function to fetch weather alerts for a given state
@@ -56,16 +56,18 @@
 
         // Function to display weather alerts on the page
         function displayAlerts(state, data) {
-            // Clear previous alerts and errors
+            // Clear previous alerts
             alertsDiv.innerHTML = "";
-            errorDiv.style.display = "none";
+            
+            // Hide error message
+            errorDiv.classList.add("hidden");
             errorDiv.innerText = "";
 
             const alertCount = data.features.length;
 
             // Display summary
             const summary = document.createElement("h3");
-            summary.textContent = `Current watches, warnings, and advisories for ${state}: ${alertCount}`;
+            summary.textContent = `Weather Alerts: ${alertCount}`;
             alertsDiv.appendChild(summary);
 
             // Display individual alert headlines
@@ -89,7 +91,11 @@
 
         // Function to show errors
         function showError(message) {
-            errorDiv.style.display = "block";
+            // Hide alerts display
+            alertsDiv.innerHTML = "";
+            
+            // Show error message
+            errorDiv.classList.remove("hidden");
             errorDiv.innerText = message;
         }
 
