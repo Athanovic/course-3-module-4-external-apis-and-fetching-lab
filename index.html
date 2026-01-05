@@ -3,25 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Alerts</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Weather Data</title>
 </head>
 <body>
     <div class="container">
-        <h1>US Weather Alerts</h1>
+        <h1>Weather Data Finder</h1>
 
-        <!-- Input for state abbreviation -->
-        <input id="state-input" type="text" maxlength="2" placeholder="Enter state code (e.g., NY)">
-        <button id="get-alerts">Get Weather Alerts</button>
+        <input id="city-input" type="text" placeholder="Enter city name (e.g., London)">
+        <button id="get-weather">Get Weather</button>
 
-        <!-- Error message -->
         <div id="error-message"></div>
 
-        <!-- Alerts display -->
-        <div id="alerts"></div>
+        <div id="weather-display">
+            <h2 id="city-name"></h2>
+            <div class="weather-info">
+                <strong>Temperature:</strong> <span id="temperature"></span>
+            </div>
+            <div class="weather-info">
+                <strong>Humidity:</strong> <span id="humidity"></span>
+            </div>
+            <div class="weather-info">
+                <strong>Conditions:</strong> <span id="description"></span>
+            </div>
+        </div>
     </div>
 
-    <!-- Include JS file -->
-    <script src="index.js"></script>
+    <script>
+        // index.js
+
+        // Base API URL - OpenWeatherMap API
+        const API_KEY = "YOUR_API_KEY_HERE"; // Replace with your actual API key
+        const weatherApi = "https://api.openweathermap.org/data/2.5/weather";
+
+        // Get references to DOM elements
+        const cityInput = document.getElementById("city-input");
+        const getWeatherBtn = document.getElementById("get-weather");
+        const weatherDisplay = document.getElementById("weather-display");
+        const errorDiv = document.getElementById("error-message");
+
+        // Function to fetch weather data for a given city
+        async function fetchWeatherData(city) {
+            try {
+                if (!city || city.trim() === "") {
+                    throw new Error("Please enter a city name.");
+                }
+
+                // Fetch data from API
+                const response = await fetch(
+                    `${weatherApi}?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`
+                );
+
+                // Check if response is successful
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error("City not found. Please check the city name.");
+                    } else if (response.status === 401) {
+                        throw new Error("Invalid API key. Please check your configuration.");
+                    } else {
+                        throw new Error("Failed to fetch weather data. Please try again.");
+                    }
+                }
+
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        // Function to display weather data on the page
+        function displayWeather(data) {
+            // Clear previous errors
+            errorDiv.style.display = "none";
+            errorDiv.innerText = "";
+
+            // Show weather display
+            weatherDisplay.style.display = "block";
+
+            // Update DOM with weather data
+            document.getElementById("city-name").textContent = 
+                `${data.name}, ${data.sys.country}`;
+            document.getElementById("temperature").textContent = 
+                `${Math.round(data.main.temp)}°C (${Math.round(data.main.temp * 9/5 + 32)}°F)`;
+            document.getElementById("humidity").textContent = 
+                `${data.main.humidity}%`;
+            document.getElementById("description").textContent = 
+                data.weather[0].description.charAt(0).toUpperCase() + 
+                data.weather[0].description.slice(1);
+
+            // Clear input field
+            cityInput.value = "";
+        }
+
+        // Function to display error messages
+        function displayError(message) {
+            // Hide weather display
+            weatherDisplay.style.display = "none";
+
+            // Show error message
+            errorDiv.style.display = "block";
+            errorDiv.innerText = message;
+        }
+
+        // Event listener for the button click
+        getWeatherBtn.addEventListener("click", async () => {
+            const city = cityInput.value.trim();
+
+            try {
+                const data = await fetchWeatherData(city);
+                displayWeather(data);
+            } catch (error) {
+                displayError(error.message);
+            }
+        });
+
+        // Allow Enter key to trigger search
+        cityInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                getWeatherBtn.click();
+            }
+        });
+
+        // Export functions for testing (if using module system)
+        if (typeof module !== 'undefined' && module.exports) {
+            module.exports = {
+                fetchWeatherData,
+                displayWeather,
+                displayError
+            };
+        }
+    </script>
 </body>
 </html>
